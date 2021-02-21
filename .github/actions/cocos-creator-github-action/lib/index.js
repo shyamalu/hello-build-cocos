@@ -36,7 +36,6 @@ function init() {
             if (process.env.NODE_ENV !== 'production') {
                 require('dotenv').config();
             }
-            core.debug(`Now the value for RUNNER_TOOL_CACHE is ${process.env.RUNNER_TOOL_CACHE}`);
             const cocosVersion = core.getInput('cocos-version') || '2.4.3';
             core.debug(`cocos version to download ... ${cocosVersion}`);
             yield installer.getCocosCreator(cocosVersion);

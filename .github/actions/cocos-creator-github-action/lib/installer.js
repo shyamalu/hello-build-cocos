@@ -40,7 +40,7 @@ function getCocosCreator(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = helper.getPlatform();
         const { version: selected, downloadUrl, } = yield helper.decideCocosVersion(version, platform);
-        let toolPath = tc.find(exports.COCOS_CREATOR, version);
+        let toolPath = tc.find(exports.COCOS_CREATOR, version, 'x64');
         if (toolPath) {
             core.debug(`Tool found in cache ${toolPath}`);
         }

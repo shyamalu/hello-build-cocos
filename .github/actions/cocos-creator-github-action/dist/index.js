@@ -131,7 +131,6 @@ function init() {
             if (process.env.NODE_ENV !== 'production') {
                 __webpack_require__(437).config();
             }
-            core.debug(`Now the value for RUNNER_TOOL_CACHE is ${process.env.RUNNER_TOOL_CACHE}`);
             const cocosVersion = core.getInput('cocos-version') || '2.4.3';
             core.debug(`cocos version to download ... ${cocosVersion}`);
             yield installer.getCocosCreator(cocosVersion);
@@ -192,7 +191,7 @@ function getCocosCreator(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = helper.getPlatform();
         const { version: selected, downloadUrl, } = yield helper.decideCocosVersion(version, platform);
-        let toolPath = tc.find(exports.COCOS_CREATOR, version);
+        let toolPath = tc.find(exports.COCOS_CREATOR, version, 'x64');
         if (toolPath) {
             core.debug(`Tool found in cache ${toolPath}`);
         }
@@ -3058,6 +3057,8 @@ function find(toolName, versionSpec, arch) {
         versionSpec = semver.clean(versionSpec) || '';
         const cachePath = path.join(_getCacheDirectory(), toolName, versionSpec, arch);
         core.debug(`checking cache: ${cachePath}`);
+        core.debug(`fs exists cachePath ${fs.existsSync(cachePath)}`);
+        core.debug(`fs exists complete: ${fs.existsSync(cachePath+'.complete')}`);
         if (fs.existsSync(cachePath) && fs.existsSync(`${cachePath}.complete`)) {
             core.debug(`Found tool in cache ${toolName} ${versionSpec} ${arch}`);
             toolPath = cachePath;
@@ -3230,6 +3231,7 @@ function _unique(values) {
     return Array.from(new Set(values));
 }
 //# sourceMappingURL=tool-cache.js.map
+
 
 /***/ }),
 
