@@ -33,4 +33,6 @@ jobs:
           pwd
           ls
           echo $GITHUB_WORKSPACE
-          /Users/runner/hostedtoolcache/Creator/2.4.3/x64/Contents/MacOS/CocosCreator --path /Users/runner/work/hello-build-cocos/hello-build-cocos --build "platform=android;debug=true;autoCompile=true;apiLevel=android-30;startScene=db://assets/Scene/helloworld.fire"
+      - name: execute build
+        run: |
+          /Users/runner/hostedtoolcache/Creator/2.4.3/x64/Contents/MacOS/CocosCreator --path /Users/runner/work/hello-build-cocos/hello-build-cocos --build "platform=android;debug=true;autoCompile=true;startScene=db://assets/Scene/helloworld.fire"
