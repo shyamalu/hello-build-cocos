@@ -28,10 +28,9 @@ jobs:
           ndk-version: r19c
       - run: |
           echo ${{ steps.setup-ndk.outputs.ndk-path }}
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: list files
+      - name: list project files
         run: |
           pwd
           ls
           echo $GITHUB_WORKSPACE
+          /Users/runner/hostedtoolcache/Creator/2.4.3/x64/CocosCreator.app/Contents/MacOS/CocosCreator --path /Users/runner/work/hello-build-cocos/hello-build-cocos --build "platform=android;debug=true;autoCompile=true;apiLevel=android-30;startScene=db://assets/Scene/helloworld.fire"
