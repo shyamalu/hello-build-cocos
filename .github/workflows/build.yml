@@ -11,8 +11,6 @@ jobs:
       - name: display directory after checkout
         run: |
           echo ${{ steps.setup-cocos.outputs.cocos-creator-path }}
-
-      - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: '2.7.18'
@@ -30,3 +28,10 @@ jobs:
           ndk-version: r19c
       - run: |
           echo ${{ steps.setup-ndk.outputs.ndk-path }}
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: list files
+        run: |
+          pwd
+          ls
+          echo $GITHUB_WORKSPACE
