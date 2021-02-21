@@ -1,0 +1,10 @@
+on: push
+jobs:
+  cocos-action:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/cocos-creator-github-action
+        id: cocos
+        with:
+          cocos-version: "2.4.3"
