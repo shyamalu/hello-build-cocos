@@ -1,0 +1,11 @@
+name: 'Cocos Creator Action'
+description: 'Cocos Creator Custom Action'
+author: 'chimple.org'
+inputs:
+  cocos-version:
+    description: 'Cocos Creator version to make available on path'
+    required: true
+    default: '2.4.3'
+runs:
+    using: 'node12' #javascript action
+    main: 'dist/index.js'
