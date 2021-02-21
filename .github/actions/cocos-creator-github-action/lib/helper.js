@@ -52,7 +52,8 @@ exports.decideCocosVersion = decideCocosVersion;
 function getVersion(storage, version, platform) {
     return __awaiter(this, void 0, void 0, function* () {
         let release = storage.data["2d"].find(release => {
-            storage.data["2d"].find(r => r.version === version);
+            console.log(release);
+            return release.version === version;
         });
         if (!release) {
             release = storage.data["2d"][0];

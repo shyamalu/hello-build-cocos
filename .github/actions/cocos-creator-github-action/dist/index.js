@@ -60,7 +60,8 @@ exports.decideCocosVersion = decideCocosVersion;
 function getVersion(storage, version, platform) {
     return __awaiter(this, void 0, void 0, function* () {
         let release = storage.data["2d"].find(release => {
-            storage.data["2d"].find(r => r.version === version);
+            console.log(release);
+            return release.version === version;
         });
         if (!release) {
             release = storage.data["2d"][0];
@@ -127,7 +128,12 @@ const installer = __importStar(__webpack_require__(480));
 function init() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const cocosVersion = core.getInput('cocos-version') || '2.4.4';
+            if (process.env.NODE_ENV !== 'production') {
+                __webpack_require__(437).config();
+            }
+            core.debug(`Now the value for RUNNER_TOOL_CACHE is ${process.env.RUNNER_TOOL_CACHE}`);
+            const cocosVersion = core.getInput('cocos-version') || '2.4.3';
+            core.debug(`cocos version to download ... ${cocosVersion}`);
             yield installer.getCocosCreator(cocosVersion);
         }
         catch (e) {
@@ -181,7 +187,7 @@ const tc = __importStar(__webpack_require__(784));
 const fs = __importStar(__webpack_require__(747));
 const path = __importStar(__webpack_require__(622));
 const helper = __importStar(__webpack_require__(947));
-exports.COCOS_CREATOR = 'cocos-creator';
+exports.COCOS_CREATOR = 'Creator';
 function getCocosCreator(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = helper.getPlatform();
@@ -193,7 +199,9 @@ function getCocosCreator(version) {
         else {
             core.debug(`Downloading Cocos Creator from url ${downloadUrl}`);
             const sdkFile = yield tc.downloadTool(downloadUrl);
+            core.debug(`printing sdkFile ${sdkFile}`);
             const sdkCache = yield tmpDir(platform);
+            core.debug(`printing sdkCache ${sdkCache}`);
             const sdkDir = yield extract(sdkFile, sdkCache, path.basename(downloadUrl));
             toolPath = yield tc.cacheDir(sdkDir, exports.COCOS_CREATOR, version);
         }
@@ -206,8 +214,11 @@ exports.getCocosCreator = getCocosCreator;
 function tmpDir(platform) {
     return __awaiter(this, void 0, void 0, function* () {
         const baseDir = tmpBaseDir(platform);
+        core.debug(`basedir: ${baseDir}`);
         const tempDir = path.join(baseDir, 'temp_' + Math.floor(Math.random() * 2000000000));
+        core.debug(`tempDir: ${tempDir}`);
         yield io.mkdirP(tempDir);
+        core.debug(`created tempDir: ${tempDir}`);
         return tempDir;
     });
 }
@@ -233,6 +244,7 @@ function tmpBaseDir(platform) {
 function extract(sdkFile, sdkCache, originalFilename) {
     return __awaiter(this, void 0, void 0, function* () {
         const fileStats = fs.statSync(path.normalize(sdkFile));
+        core.debug(`fileStats ${JSON.stringify(fileStats)}`);
         if (fileStats.isFile()) {
             const stats = fs.statSync(sdkFile);
             if (!stats) {
@@ -241,10 +253,12 @@ function extract(sdkFile, sdkCache, originalFilename) {
             else if (stats.isDirectory()) {
                 throw new Error(`Failed to extract ${sdkFile} - it is a directory`);
             }
+            core.debug(`originalFilename ${originalFilename}`);
             if (originalFilename.endsWith('tar.xz')) {
                 yield tc.extractTar(sdkFile, sdkCache, 'x');
             }
             else {
+                core.debug(`extractZip ${sdkFile} ${sdkCache}`);
                 yield tc.extractZip(sdkFile, sdkCache);
             }
             return path.join(sdkCache, fs.readdirSync(sdkCache)[0]);
@@ -4902,6 +4916,126 @@ function v4(options, buf, offset) {
 }
 
 module.exports = v4;
+
+
+/***/ }),
+
+/***/ 437:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+/* @flow */
+/*::
+
+type DotenvParseOptions = {
+  debug?: boolean
+}
+
+// keys and values from src
+type DotenvParseOutput = { [string]: string }
+
+type DotenvConfigOptions = {
+  path?: string, // path to .env file
+  encoding?: string, // encoding of .env file
+  debug?: string // turn on logging for debugging purposes
+}
+
+type DotenvConfigOutput = {
+  parsed?: DotenvParseOutput,
+  error?: Error
+}
+
+*/
+
+const fs = __webpack_require__(747)
+const path = __webpack_require__(622)
+
+function log (message /*: string */) {
+  console.log(`[dotenv][DEBUG] ${message}`)
+}
+
+const NEWLINE = '\n'
+const RE_INI_KEY_VAL = /^\s*([\w.-]+)\s*=\s*(.*)?\s*$/
+const RE_NEWLINES = /\\n/g
+const NEWLINES_MATCH = /\n|\r|\r\n/
+
+// Parses src into an Object
+function parse (src /*: string | Buffer */, options /*: ?DotenvParseOptions */) /*: DotenvParseOutput */ {
+  const debug = Boolean(options && options.debug)
+  const obj = {}
+
+  // convert Buffers before splitting into lines and processing
+  src.toString().split(NEWLINES_MATCH).forEach(function (line, idx) {
+    // matching "KEY' and 'VAL' in 'KEY=VAL'
+    const keyValueArr = line.match(RE_INI_KEY_VAL)
+    // matched?
+    if (keyValueArr != null) {
+      const key = keyValueArr[1]
+      // default undefined or missing values to empty string
+      let val = (keyValueArr[2] || '')
+      const end = val.length - 1
+      const isDoubleQuoted = val[0] === '"' && val[end] === '"'
+      const isSingleQuoted = val[0] === "'" && val[end] === "'"
+
+      // if single or double quoted, remove quotes
+      if (isSingleQuoted || isDoubleQuoted) {
+        val = val.substring(1, end)
+
+        // if double quoted, expand newlines
+        if (isDoubleQuoted) {
+          val = val.replace(RE_NEWLINES, NEWLINE)
+        }
+      } else {
+        // remove surrounding whitespace
+        val = val.trim()
+      }
+
+      obj[key] = val
+    } else if (debug) {
+      log(`did not match key and value when parsing line ${idx + 1}: ${line}`)
+    }
+  })
+
+  return obj
+}
+
+// Populates process.env from .env file
+function config (options /*: ?DotenvConfigOptions */) /*: DotenvConfigOutput */ {
+  let dotenvPath = path.resolve(process.cwd(), '.env')
+  let encoding /*: string */ = 'utf8'
+  let debug = false
+
+  if (options) {
+    if (options.path != null) {
+      dotenvPath = options.path
+    }
+    if (options.encoding != null) {
+      encoding = options.encoding
+    }
+    if (options.debug != null) {
+      debug = true
+    }
+  }
+
+  try {
+    // specifying an encoding returns a string instead of a buffer
+    const parsed = parse(fs.readFileSync(dotenvPath, { encoding }), { debug })
+
+    Object.keys(parsed).forEach(function (key) {
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+        process.env[key] = parsed[key]
+      } else if (debug) {
+        log(`"${key}" is already defined in \`process.env\` and will not be overwritten`)
+      }
+    })
+
+    return { parsed }
+  } catch (e) {
+    return { error: e }
+  }
+}
+
+module.exports.config = config
+module.exports.parse = parse
 
 
 /***/ }),

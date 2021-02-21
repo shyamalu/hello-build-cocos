@@ -35,7 +35,7 @@ const tc = __importStar(require("@actions/tool-cache"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const helper = __importStar(require("./helper"));
-exports.COCOS_CREATOR = 'cocos-creator';
+exports.COCOS_CREATOR = 'Creator';
 function getCocosCreator(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = helper.getPlatform();
@@ -47,7 +47,9 @@ function getCocosCreator(version) {
         else {
             core.debug(`Downloading Cocos Creator from url ${downloadUrl}`);
             const sdkFile = yield tc.downloadTool(downloadUrl);
+            core.debug(`printing sdkFile ${sdkFile}`);
             const sdkCache = yield tmpDir(platform);
+            core.debug(`printing sdkCache ${sdkCache}`);
             const sdkDir = yield extract(sdkFile, sdkCache, path.basename(downloadUrl));
             toolPath = yield tc.cacheDir(sdkDir, exports.COCOS_CREATOR, version);
         }
@@ -60,8 +62,11 @@ exports.getCocosCreator = getCocosCreator;
 function tmpDir(platform) {
     return __awaiter(this, void 0, void 0, function* () {
         const baseDir = tmpBaseDir(platform);
+        core.debug(`basedir: ${baseDir}`);
         const tempDir = path.join(baseDir, 'temp_' + Math.floor(Math.random() * 2000000000));
+        core.debug(`tempDir: ${tempDir}`);
         yield io.mkdirP(tempDir);
+        core.debug(`created tempDir: ${tempDir}`);
         return tempDir;
     });
 }
@@ -87,6 +92,7 @@ function tmpBaseDir(platform) {
 function extract(sdkFile, sdkCache, originalFilename) {
     return __awaiter(this, void 0, void 0, function* () {
         const fileStats = fs.statSync(path.normalize(sdkFile));
+        core.debug(`fileStats ${JSON.stringify(fileStats)}`);
         if (fileStats.isFile()) {
             const stats = fs.statSync(sdkFile);
             if (!stats) {
@@ -95,10 +101,12 @@ function extract(sdkFile, sdkCache, originalFilename) {
             else if (stats.isDirectory()) {
                 throw new Error(`Failed to extract ${sdkFile} - it is a directory`);
             }
+            core.debug(`originalFilename ${originalFilename}`);
             if (originalFilename.endsWith('tar.xz')) {
                 yield tc.extractTar(sdkFile, sdkCache, 'x');
             }
             else {
+                core.debug(`extractZip ${sdkFile} ${sdkCache}`);
                 yield tc.extractZip(sdkFile, sdkCache);
             }
             return path.join(sdkCache, fs.readdirSync(sdkCache)[0]);
