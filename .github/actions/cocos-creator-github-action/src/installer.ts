@@ -22,9 +22,9 @@ export async function getCocosCreator(
     } else {
         core.debug(`Downloading Cocos Creator from url ${downloadUrl}`);
         const sdkFile = await tc.downloadTool(downloadUrl);
-        core.debug(`sdkFile ${sdkFile}`)
+        core.debug(`printing sdkFile ${sdkFile}`)
         const sdkCache = await tmpDir(platform);
-        core.debug(`sdkFile ${sdkCache}`)
+        core.debug(`printing sdkCache ${sdkCache}`)
         const sdkDir = await extract(sdkFile, sdkCache, path.basename(downloadUrl));
         toolPath = await tc.cacheDir(sdkDir, COCOS_CREATOR, version);
     }
@@ -37,12 +37,15 @@ export async function getCocosCreator(
 
 async function tmpDir(platform: string): Promise<string> {
     const baseDir = tmpBaseDir(platform);
+    core.debug(`basedir: ${baseDir}`);
     const tempDir = path.join(
         baseDir,
         'temp_' + Math.floor(Math.random() * 2000000000)
     );
 
+    core.debug(`tempDir: ${tempDir}`);
     await io.mkdirP(tempDir);
+    core.debug(`created tempDir: ${tempDir}`);
     return tempDir;
 }
 
@@ -75,7 +78,7 @@ async function extract(
     originalFilename: string
 ): Promise<string> {
     const fileStats = fs.statSync(path.normalize(sdkFile));
-
+    core.debug(`fileStats ${JSON.stringify(fileStats)}`);
     if (fileStats.isFile()) {
         const stats = fs.statSync(sdkFile);
 
@@ -84,10 +87,11 @@ async function extract(
         } else if (stats.isDirectory()) {
             throw new Error(`Failed to extract ${sdkFile} - it is a directory`);
         }
-
+        core.debug(`originalFilename ${originalFilename}`);
         if (originalFilename.endsWith('tar.xz')) {
             await tc.extractTar(sdkFile, sdkCache, 'x');
         } else {
+            core.debug(`extractZip ${sdkFile} ${sdkCache}`);
             await tc.extractZip(sdkFile, sdkCache);
         }
 
