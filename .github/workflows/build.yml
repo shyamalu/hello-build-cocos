@@ -5,14 +5,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/cocos-creator-github-action
-        id: cocos
+        id: setup-cocos
         with:
           cocos-version: "2.4.3"
       - name: display directory after checkout
         run: |
-          pwd
-          cd /Users/runner/hostedtoolcache/Creator/2.4.3/x64
-          ls -l
+          echo ${{ steps.setup-cocos.outputs.cocos-creator-path }}
+
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
